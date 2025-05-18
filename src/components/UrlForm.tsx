@@ -37,9 +37,15 @@ export default function UrlForm({ onSubmit }: UrlFormProperties) {
     if (!(input instanceof HTMLInputElement))
       throw new Error("Expected form to have url input");
 
+    console.debug("submitted", input.value);
     const url = URL.parse(input.value);
     if (url === null) {
       input.setCustomValidity("Invalid url. Url is not parsable.");
+      input.reportValidity();
+      // Reset on next input
+      input.addEventListener("input", () => input.setCustomValidity(""), {
+        once: true,
+      });
       return;
     }
 
@@ -57,7 +63,9 @@ export default function UrlForm({ onSubmit }: UrlFormProperties) {
       <input
         id="url"
         name={URL_INPUT}
+        type="url"
         required
+        autofocus
         class="border-4 rounded-full px-4 py-1.5 focus-visible:border-orange-500 focus:outline-none block grow row-start-2 "
       />
       <button

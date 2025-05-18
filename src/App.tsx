@@ -1,6 +1,7 @@
 import { createEffect, createSignal, For } from "solid-js";
 import UrlForm from "./components/UrlForm";
 import UrlItem from "./components/UrlItem";
+import transition from "./transition";
 
 const URI_LIST = "text/uri-list";
 
@@ -53,13 +54,15 @@ export default function App() {
   function handleUrlSubmit(url: URL) {
     console.debug("Submitted url", url);
     //TODO use map to deduplicate and reduce garbage
-    setUrls((urls) => {
-      const index = urls.findIndex((otherUrl) => otherUrl.href === url.href);
+    transition(() => {
+      setUrls((urls) => {
+        const index = urls.findIndex((otherUrl) => otherUrl.href === url.href);
 
-      console.debug("Found url", index);
-      if (index !== -1) return urls;
+        console.debug("Found url", index);
+        if (index !== -1) return urls;
 
-      return [...urls, url];
+        return [...urls, url];
+      });
     });
   }
 
@@ -73,7 +76,7 @@ export default function App() {
       <h2 class="sr-only">Add Destination</h2>
       <UrlForm onSubmit={handleUrlSubmit} />
       <h2 class="sr-only">Destinations</h2>
-      <ul class="font-bold mt-4">
+      <ul class="font-bold mt-4 flex flex-wrap gap-2">
         <For each={urls()}>
           {(url) => (
             <li>

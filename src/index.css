@@ -3,3 +3,15 @@
 :root {
   @apply bg-stone-100 text-stone-900;
 }
+
+@theme {
+  --animate-stripes: stripes 5s linear infinite;
+  @keyframes stripes {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 40px -40px;
+    }
+  }
+}

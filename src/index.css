@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  @apply bg-stone-100 text-stone-900;
+    @apply bg-stone-100 text-stone-900 caret-orange-600 accent-orange-500 selection:bg-stone-900 selection:text-orange-500;
 }
 
 @theme {
-  --animate-stripes: stripes 5s linear infinite;
-  @keyframes stripes {
-    from {
-      background-position: 0 0;
+    --animate-stripes: stripes 1.5s linear infinite;
+    @keyframes stripes {
+        from {
+            background-position: 0 0;
+        }
+        to {
+            background-position: 40px -40px;
+        }
     }
-    to {
-      background-position: 40px -40px;
-    }
-  }
 }

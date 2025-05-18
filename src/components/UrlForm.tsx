@@ -1,5 +1,5 @@
-import { createResource, type Resource } from "solid-js";
 import Plus from "lucide-solid/icons/plus";
+import type { EventParameter } from "~/App";
 
 const URL_INPUT = "url";
 
@@ -26,12 +26,10 @@ export type UrlFormProperties = {
 // }
 
 export default function UrlForm({ onSubmit }: UrlFormProperties) {
-  function handleSubmit(event: SubmitEvent) {
+  function handleSubmit(event: EventParameter<HTMLFormElement, SubmitEvent>) {
     event.preventDefault();
 
     const form = event.currentTarget;
-    if (!(form instanceof HTMLFormElement))
-      throw new Error("Expected to handle form submit event");
 
     const input = form.elements.namedItem(URL_INPUT);
     if (!(input instanceof HTMLInputElement))

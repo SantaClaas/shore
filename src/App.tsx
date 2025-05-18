@@ -1,8 +1,11 @@
-import { createEffect, createSignal, For } from "solid-js";
+import { createEffect, createSignal, For, type JSX } from "solid-js";
 import UrlForm from "./components/UrlForm";
 import UrlItem from "./components/UrlItem";
 import transition from "./transition";
 
+export type EventParameter<T, E extends Event> = Parameters<
+  JSX.EventHandler<T, E>
+>[0];
 const URI_LIST = "text/uri-list";
 
 function loadUrls(): URL[] {
@@ -23,36 +26,39 @@ export default function App() {
 
   function handleDragEnter(event: DragEvent) {
     const data = event.dataTransfer;
-    if (!data) return;
+    if (data === null) return;
 
     const isLink = data.types.includes(URI_LIST);
     if (!isLink) return;
     event.preventDefault();
   }
 
-  function handleDrop(event: DragEvent) {
-    const data = event.dataTransfer;
-    if (!data) return;
-    event.preventDefault();
-    const lines = data.getData(URI_LIST);
+  function handleDataTransfer(data: DataTransfer) {
+    const lines = data.getData(URI_LIST) || data.getData("text");
 
+    console.debug("Dop", lines);
     if (lines.length === 0) return;
 
-    const urls = lines.split("\n").reduce((urls, line) => {
-      if (line.startsWith("#")) return urls;
-
-      // console.debug("url line", line);
+    for (const line of lines.split("\n")) {
+      if (line.startsWith("#")) continue;
+      console.debug("Run", line);
       const url = URL.parse(line);
-      if (url !== null) urls.push(url);
+      console.debug("Adding", url);
+      if (url === null) continue;
 
-      return urls;
-    }, new Array<URL>());
-
-    console.debug("Dropped urls", urls);
+      addUrl(url);
+    }
   }
 
-  function handleUrlSubmit(url: URL) {
-    console.debug("Submitted url", url);
+  document.addEventListener("paste", (event: ClipboardEvent) => {
+    console.debug("Paste", event.clipboardData?.getData("text"));
+    if (event.clipboardData !== null) {
+      handleDataTransfer(event.clipboardData);
+      event.preventDefault();
+    }
+  });
+
+  function addUrl(url: URL) {
     //TODO use map to deduplicate and reduce garbage
     transition(() => {
       setUrls((urls) => {
@@ -66,6 +72,39 @@ export default function App() {
     });
   }
 
+  function removeUrl(url: URL) {
+    transition(() => {
+      setUrls((urls) => {
+        //TODO rework this janky delete
+        const index = urls.findIndex((otherUrl) => otherUrl.href === url.href);
+
+        urls.splice(index, 1);
+        return [...urls];
+      });
+    });
+  }
+
+  function handleDrop(event: DragEvent) {
+    const data = event.dataTransfer;
+    if (!data) return;
+    event.preventDefault();
+    handleDataTransfer(data);
+  }
+
+  function handleDelete(
+    event: EventParameter<HTMLUListElement, KeyboardEvent>,
+  ) {
+    console.debug("k", event.key, event.target);
+    if (
+      (event.key !== "Delete" && event.key !== "Backspace") ||
+      !(event.target instanceof HTMLAnchorElement)
+    )
+      return;
+
+    const url = new URL(event.target.href);
+    removeUrl(url);
+  }
+
   return (
     <main
       class="max-w-3xl mx-auto px-6"
@@ -74,9 +113,9 @@ export default function App() {
     >
       <h1 class="text-7xl font-bold text-orange-600">Shore</h1>
       <h2 class="sr-only">Add Destination</h2>
-      <UrlForm onSubmit={handleUrlSubmit} />
+      <UrlForm onSubmit={addUrl} />
       <h2 class="sr-only">Destinations</h2>
-      <ul class="font-bold mt-4 flex flex-wrap gap-2">
+      <ul class="font-bold mt-4 flex flex-wrap gap-2" onKeyDown={handleDelete}>
         <For each={urls()}>
           {(url) => (
             <li>

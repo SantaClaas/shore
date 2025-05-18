@@ -1,4 +1,4 @@
-import { createEffect, createResource } from "solid-js";
+import { createResource } from "solid-js";
 import getDocument from "../getDocument";
 
 export default function UrlItem({ url }: { url: URL }) {
